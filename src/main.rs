@@ -121,16 +121,16 @@ async fn main() {
         )
     }
 
-    let size = 5;
+    let size = 6;
     let dimensions = 4;
-    let portals = 20;
+    let portals = 10;
     let food = 10;
 
 
 
 
     let mut b = match dimensions {
-        2 => Board::new_4d_no_portals(size),
+        2 => Board::new_2d_no_portals(size),
         4 => Board::new_4d_no_portals(size),
         _ => {
             warn!("Invalid number of dimensions, {dimensions}");
@@ -248,16 +248,24 @@ async fn main() {
                 i.is_food = false;
                 b.snake = vec![0,1];
             }
-        }
 
-        
+            for _ in 0..food {
+                b.nodes[rng.gen_range(0..l)].is_food = true;
+            }
         }
         
-        for i in &b.snake {
-            b.nodes[*i].is_snake = true;
-        }
-
-        for i in &b.nodes {
+        
+    }
+    
+    for i in &b.snake {
+        b.nodes[*i].is_snake = true;
+    }
+    
+    for i in &b.nodes {
+            for j in &i.connections {
+                let a = (coord(i, size), coord(&b.nodes[*j], size));
+                draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 })
+            }
             let p = coord(i, size);
             draw_circle(
                 p.0,
@@ -268,7 +276,7 @@ async fn main() {
                 },
                 match (i.is_food, i.is_snake) {
                     (false, false) => Color::from_rgba(255, 255, 255, 100),
-                    (true, false) => RED,
+                    (true, false) => GOLD,
                     (false, true) => WHITE,
                     (true, true) => GOLD,
                 },
@@ -297,10 +305,6 @@ async fn main() {
             }
 
             
-            for j in &i.connections {
-                let a = (coord(i, size), coord(&b.nodes[*j], size));
-                draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 })
-            }
         }
         
         
