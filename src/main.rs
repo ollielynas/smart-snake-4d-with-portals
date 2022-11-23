@@ -373,7 +373,7 @@ async fn main() {
                 if i.w == b.nodes[*j].w {
                 draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 });
                 if i.is_snake && b.nodes[*j].is_snake {
-                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 5.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 })
+                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 8.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 })
                 }
                 }
             }
