@@ -144,6 +144,12 @@ enum Direction {
 async fn main() {
     fn coord(node: &Node, size: i32, graph_type: i32) -> (f32, f32) {
         let n = (node.x + node.y*size + node.z*size.pow(2) + node.w*size.pow(3)) as f32;
+        let w = node.w as f32 - (node.w as f32/5.0).floor() * 5.0;
+        let size2 = match size > 5 {
+            true => 5,
+            _ => size
+        };
+        let height = (node.w as f32/5.0).floor() * 5.0;
         match graph_type {
         0 => (
             15.0 * (node.x + (node.z) * size + (node.z + 1)) as f32,
@@ -163,9 +169,12 @@ async fn main() {
             3.1415*n.powf(0.5)*n.powf(2.0).cos() * 10.0 + 6.0/3.141592 * (size as f32).powi(4),
         ),
         4 => (
-            (((node.x + 5)) as f32 * screen_width()* 0.25 / (node.z + 48) as f32) * 5.0 + screen_width()/((size) as f32) * node.w as f32 
-            - (4.0 * screen_width()* 0.25 / (48) as f32) * 5.0 ,
-            (((node.y + 13) as f32) as f32 * screen_height()* 0.25 / (node.z + 48) as f32) * 5.0 - 13.0 * 6.0,
+            ((((node.x + 5)) as f32 * screen_width()* 0.25 / (node.z + 48) as f32) * 5.0 + screen_width()/(((size2) as f32) / w /size as f32*7.0)
+            - (4.0 * screen_width()* 0.25 / (48) as f32)*5.0)*7.0/size as f32,
+            ((((node.y as i32 + 13) as f32) as f32 * screen_width()* 0.25 / (node.z + 48) as f32)*5.0
+            + screen_width()/(((size2) as f32) / height*4.0 / size as f32*7.0)
+            +0.25*screen_width()
+            -(((0 + 13) as f32) as f32 * screen_width()* 0.25 / (48) as f32)*5.0)*7.0/size as f32,
         ),
         _ => panic!("invalid graph type")
         }
@@ -188,13 +197,13 @@ async fn main() {
 -                                                d"     YD  
 -                                                "Y88888P'  
 */
-    let size = 6;
+    let size = 12;
     let dimensions = 4;
     let portals = 15;
     let food = 15;
     let graph_type = 4;
     let user_control = false;
-    let snake_speed = 70;
+    let snake_speed = 100;
 
 
     let mut b = match dimensions {
@@ -231,6 +240,7 @@ async fn main() {
         draw_text(&format!("Length: {}", b.snake.len()), 10.0, 30.0, 30.0, WHITE);
         let head = &b.nodes[b.snake[b.snake.len()-1]];
         draw_text(&format!("Head Position : (x:{} y:{} z:{} w:{})", head.x,head.y,head.z,head.w), 10.0, 60.0, 30.0, WHITE);
+        draw_text(&format!("size:{size} {dimensions}D portals:{portals} food:{food} graph:{graph_type} AI:{} speed:{snake_speed}ms", (!user_control)),  10.0, 90.0, 30.0, WHITE);
 
         match get_char_pressed() {
             Some('w') => {
