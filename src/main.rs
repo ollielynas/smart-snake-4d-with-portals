@@ -3,7 +3,7 @@ use std::time::Instant;
 use macroquad::prelude::*;
 use ::rand::prelude::*;
 
-const MAX_DEPTH: i32 = 50;
+const MAX_DEPTH: i32 = 10;
 
 #[derive(Debug, Clone)]
 struct Node {
@@ -107,7 +107,7 @@ o888ooo0ood8     `8'     `Y888""8o o888o      o8o        o888o `Y8bod8P'     `8'
 */
 
     fn eval_move(&self, index: usize) -> i32 {
-        let mut tried = vec![];
+        let mut tried = self.snake.clone();
         let mut n_map: Vec<Vec<usize>> = vec![self.nodes[index].connections.clone()];
         let mut depth = -1;
         loop {
@@ -149,6 +149,7 @@ async fn main() {
             15.0 * (node.x + (node.z) * size + (node.z + 1)) as f32,
             15.0 * (node.y + (node.w) * size + (node.w + 1)) as f32,
         ),
+
         1 => (
             3.1415*n.powf(0.5)*n.powf(1.0).sin() * 10.0 + 3.141592 * (size as f32).powi(2) * 10.0,
             3.1415*n.powf(0.5)*n.powf(1.0).cos() * 10.0 + 3.141592 * (size as f32).powi(2) * 10.0,
@@ -161,8 +162,14 @@ async fn main() {
             3.1415*n.powf(0.5)*n.powf(1.0).sin() * 10.0 + 6.0/3.141592 * (size as f32).powi(4),
             3.1415*n.powf(0.5)*n.powf(2.0).cos() * 10.0 + 6.0/3.141592 * (size as f32).powi(4),
         ),
+        4 => (
+            (((node.x + 5)) as f32 * screen_width()* 0.25 / (node.z + 48) as f32) * 5.0 + screen_width()/((size) as f32) * node.w as f32 
+            - (4.0 * screen_width()* 0.25 / (48) as f32) * 5.0 ,
+            (((node.y + 13) as f32) as f32 * screen_height()* 0.25 / (node.z + 48) as f32) * 5.0 - 13.0 * 6.0,
+        ),
         _ => panic!("invalid graph type")
         }
+
     }
     fn index_coord(n: f32) -> (f32, f32) {
         (
@@ -181,13 +188,13 @@ async fn main() {
 -                                                d"     YD  
 -                                                "Y88888P'  
 */
-    let size = 15;
-    let dimensions = 2;
-    let portals = 10;
-    let food = 10;
-    let graph_type = 0;
+    let size = 6;
+    let dimensions = 4;
+    let portals = 15;
+    let food = 15;
+    let graph_type = 4;
     let user_control = false;
-    let snake_speed = 100;
+    let snake_speed = 70;
 
 
     let mut b = match dimensions {
@@ -361,8 +368,14 @@ async fn main() {
     
     for i in &b.nodes {
             for j in &i.connections {
+                
                 let a = (coord(i, size, graph_type), coord(&b.nodes[*j], size, graph_type));
-                draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 })
+                if i.w == b.nodes[*j].w {
+                draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 });
+                if i.is_snake && b.nodes[*j].is_snake {
+                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 5.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 })
+                }
+                }
             }
             let p = coord(i, size, graph_type);
             draw_circle(
@@ -370,10 +383,10 @@ async fn main() {
                 p.1,
                 match i.is_snake || i.is_food {
                     true => 4.0,
-                    _ => 3.0,
+                    _ => 2.0,
                 },
                 match (i.is_food, i.is_snake) {
-                    (false, false) => Color::from_rgba(255, 255, 255, 100),
+                    (false, false) => Color::from_rgba(255, 255, 255, 50),
                     (true, false) => GOLD,
                     (false, true) => WHITE,
                     (true, true) => GOLD,
@@ -398,11 +411,11 @@ async fn main() {
                     5.0,
                     ORANGE
                     );
+                    
                     draw_line(p.0, p.1, p2.0, p2.1, 2.0, Color { r: 1.0, g: 0.0, b: 0.0, a: 1.0 })
                 }
             }
 
-            
         }
         
         
