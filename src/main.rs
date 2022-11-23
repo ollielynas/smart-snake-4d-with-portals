@@ -3,6 +3,8 @@ use std::time::Instant;
 use macroquad::prelude::*;
 use ::rand::prelude::*;
 
+const MAX_DEPTH: i32 = 50;
+
 #[derive(Debug, Clone)]
 struct Node {
     is_food: bool,
@@ -95,7 +97,39 @@ impl Board {
     fn get_index(&self, x:i32,y:i32,z:i32,w:i32) -> usize {
         (x + y*self.size + z*self.size.pow(2) + w*self.size.pow(3)) as usize
     }
+/*oooooooooooo                       oooo       ooo        ooooo                                 
+`888'     `8                       `888       `88.       .888'                                 
+ 888         oooo    ooo  .oooo.    888        888b     d'888   .ooooo.  oooo    ooo  .ooooo.  
+ 888oooo8     `88.  .8'  `P  )88b   888        8 Y88. .P  888  d88' `88b  `88.  .8'  d88' `88b 
+ 888    "      `88..8'    .oP"888   888        8  `888'   888  888   888   `88..8'   888ooo888 
+ 888       o    `888'    d8(  888   888        8    Y     888  888   888    `888'    888    .o 
+o888ooo0ood8     `8'     `Y888""8o o888o      o8o        o888o `Y8bod8P'     `8'     `Y8bod8P' 
+*/
 
+    fn eval_move(&self, index: usize) -> i32 {
+        let mut tried = vec![];
+        let mut n_map: Vec<Vec<usize>> = vec![self.nodes[index].connections.clone()];
+        let mut depth = -1;
+        loop {
+            depth += 1;
+            if depth > MAX_DEPTH {return depth}
+            let mut new_layer = vec![];
+            for i in &n_map[depth as usize] {
+                if self.nodes[*i].is_food {
+                    return depth
+                }else {
+                    for j in &self.nodes[*i].connections {
+                        if !tried.contains(j) {
+                            tried.push(*j);
+                            new_layer.push(*j);
+                        }
+                    }
+                }
+            }
+            n_map.push(new_layer);
+        }
+
+    }
 
 }
 
@@ -147,13 +181,13 @@ async fn main() {
 -                                                d"     YD  
 -                                                "Y88888P'  
 */
-    let size = 6;
-    let dimensions = 4;
+    let size = 15;
+    let dimensions = 2;
     let portals = 10;
     let food = 10;
     let graph_type = 0;
     let user_control = false;
-    let snake_speed = 10;
+    let snake_speed = 100;
 
 
     let mut b = match dimensions {
@@ -185,7 +219,7 @@ async fn main() {
     
     let mut now = Instant::now();
 
-    
+    println!("{}", b.eval_move(0));
     loop {
         clear_background(Color::from_rgba(10, 10, 10, 255));
         match get_char_pressed() {
@@ -267,7 +301,7 @@ async fn main() {
     }
     if !found_food {
         let mut made_move = false;
-        head.connections.shuffle(&mut rng);
+        head.connections.sort_by(|move1, move2| b.eval_move(*move1).cmp(&b.eval_move(*move2)));
         for l in head.connections {
             if !b.nodes[l].is_snake {
                 made_move = true;
