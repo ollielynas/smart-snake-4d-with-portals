@@ -226,9 +226,12 @@ async fn main() {
     
     let mut now = Instant::now();
 
-    println!("{}", b.eval_move(0));
     loop {
         clear_background(Color::from_rgba(10, 10, 10, 255));
+        draw_text(&format!("Length: {}", b.snake.len()), 10.0, 30.0, 30.0, WHITE);
+        let head = &b.nodes[b.snake[b.snake.len()-1]];
+        draw_text(&format!("Head Position : (x:{} y:{} z:{} w:{})", head.x,head.y,head.z,head.w), 10.0, 60.0, 30.0, WHITE);
+
         match get_char_pressed() {
             Some('w') => {
                 direction = Direction::Y;
@@ -339,7 +342,6 @@ async fn main() {
                     b.nodes[b.snake[0]].is_snake = false;
                     b.snake.remove(0);
                 }else {
-                    println!("got food");
                     b.nodes[b.snake[b.snake.len()-1]].is_food = false;
                     b.nodes[rng.gen_range(0..l)].is_food = true;
                 }
