@@ -110,6 +110,9 @@ o888ooo0ood8     `8'     `Y888""8o o888o      o8o        o888o `Y8bod8P'     `8'
         let mut tried = self.snake.clone();
         let mut n_map: Vec<Vec<usize>> = vec![self.nodes[index].connections.clone()];
         let mut depth = -1;
+        if self.nodes[index].is_snake || self.nodes[index].is_food {
+            return MAX_DEPTH
+        }
         loop {
             depth += 1;
             if depth > MAX_DEPTH {return depth}
@@ -197,14 +200,16 @@ async fn main() {
 -                                                d"     YD  
 -                                                "Y88888P'  
 */
-    let size = 10;
+    let size = 7;
     let dimensions = 4;
     let portals = 15;
     let food = 40;
     let graph_type = 4;
     let user_control = false;
     let snake_speed = 1;
-
+    let snake_color = Color::from_rgba(149, 166, 90, 255);
+    let show_grid = false;
+    let render_on_top = false; /*(Faster)*/
 
     let mut b = match dimensions {
         2 => Board::new_2d_no_portals(size),
@@ -374,26 +379,41 @@ async fn main() {
         
         
     }
-    
-    for i in &b.snake {
-        b.nodes[*i].is_snake = true;
+    let mut other_end = b.nodes[b.snake[0]].clone();
+    for i2 in &b.snake {
+        b.nodes[*i2].is_snake = true;
+        let i = b.nodes[*i2].clone();
+        if i.w == other_end.w && render_on_top {
+        let a = (coord(&i, size, graph_type), coord(&other_end, size, graph_type));
+        draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 7.0+ 1.0/(i.z as f32), snake_color);
+        }
+        let b = i.clone();
+        other_end = b;
     }
+
     
     for i in &b.nodes {
+        if show_grid || !render_on_top {
             for j in &i.connections {
                 
                 let a = (coord(i, size, graph_type), coord(&b.nodes[*j], size, graph_type));
                 let mut snake2 = b.snake.clone();
                 if i.w == b.nodes[*j].w {
-                
-                draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 });
+                if show_grid {
+                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 });
+                }
                 for s in 0..snake2.len()-1 {
-                    if &b.nodes[snake2[s]] == i && b.nodes[*j] == b.nodes[snake2[s + 1]]  {
-                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 7.0+ 1.0/(i.z as f32), Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 })
+                    if !render_on_top && &b.nodes[snake2[s]] == i && b.nodes[*j] == b.nodes[snake2[s + 1]]  {
+                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 7.0+ 1.0/(i.z as f32), snake_color);
+                    snake2.remove(s);
+                    break
                     }
                 }
                 }
+                }
             }
+
+// ||------------------------------------ draw grid below here  --------------------------------------------------||
             let p = coord(i, size, graph_type);
             draw_circle(
                 p.0,
@@ -405,7 +425,7 @@ async fn main() {
                 match (i.is_food, i.is_snake) {
                     (false, false) => Color::from_rgba(255, 255, 255, 50),
                     (true, false) => GOLD,
-                    (false, true) => WHITE,
+                    (false, true) => snake_color,
                     (true, true) => GOLD,
                 },
             );
@@ -432,6 +452,7 @@ async fn main() {
                     draw_line(p.0, p.1, p2.0, p2.1, 2.0, Color { r: 1.0, g: 0.0, b: 0.0, a: 1.0 })
                 }
             }
+
 
         }
         
