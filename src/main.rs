@@ -3,7 +3,7 @@ use std::time::Instant;
 use macroquad::prelude::*;
 use ::rand::prelude::*;
 
-const MAX_DEPTH: i32 = 10;
+const MAX_DEPTH: i32 = 50;
 
 #[derive(Debug, Clone, PartialEq)]
 struct Node {
@@ -200,16 +200,17 @@ async fn main() {
 -                                                d"     YD  
 -                                                "Y88888P'  
 */
-    let size = 15;
-    let dimensions = 2;
-    let portals = 80;
-    let food = 40;
+    let size = 12;
+    let dimensions = 4;
+    let portals = 10;
+    let food = 80;
     let graph_type = 4;
     let user_control = false;
     let snake_speed = 1;
     let snake_color = Color::from_rgba(149, 166, 90, 255);
     let show_grid = false; /*(Slower)*/
     let render_on_top = true; /*(Faster)*/
+    let frame_skipping = 3;
 
     let mut b = match dimensions {
         2 => Board::new_2d_no_portals(size),
@@ -239,8 +240,9 @@ async fn main() {
     let mut speed: i32 = 1; 
     
     let mut now = Instant::now();
-
+    let mut frame_skipped = 0;
     loop {
+        frame_skipped += 1;
         clear_background(Color::from_rgba(10, 10, 10, 255));
         draw_text(&format!("Length: {}", b.snake.len()), 10.0, 30.0, 30.0, WHITE);
         let head = &b.nodes[b.snake[b.snake.len()-1]];
@@ -458,7 +460,9 @@ async fn main() {
         
         
         
-
-        next_frame().await
+        if frame_skipped >= frame_skipping {
+            frame_skipped = 0;
+            next_frame().await
+        }
     }
 }
