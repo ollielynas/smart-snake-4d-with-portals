@@ -5,7 +5,7 @@ use ::rand::prelude::*;
 
 const MAX_DEPTH: i32 = 10;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 struct Node {
     is_food: bool,
     is_snake: bool,
@@ -30,7 +30,7 @@ impl Node {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 struct Board {
     nodes: Vec<Node>,
     size: i32,
@@ -197,13 +197,13 @@ async fn main() {
 -                                                d"     YD  
 -                                                "Y88888P'  
 */
-    let size = 12;
+    let size = 10;
     let dimensions = 4;
     let portals = 15;
-    let food = 15;
+    let food = 40;
     let graph_type = 4;
     let user_control = false;
-    let snake_speed = 100;
+    let snake_speed = 1;
 
 
     let mut b = match dimensions {
@@ -321,6 +321,7 @@ async fn main() {
     }
     if !found_food {
         let mut made_move = false;
+        head.connections.shuffle(&mut rng);
         head.connections.sort_by(|move1, move2| b.eval_move(*move1).cmp(&b.eval_move(*move2)));
         for l in head.connections {
             if !b.nodes[l].is_snake {
@@ -382,10 +383,14 @@ async fn main() {
             for j in &i.connections {
                 
                 let a = (coord(i, size, graph_type), coord(&b.nodes[*j], size, graph_type));
+                let mut snake2 = b.snake.clone();
                 if i.w == b.nodes[*j].w {
+                
                 draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 1.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 0.5 });
-                if i.is_snake && b.nodes[*j].is_snake {
-                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 8.0, Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 })
+                for s in 0..snake2.len()-1 {
+                    if &b.nodes[snake2[s]] == i && b.nodes[*j] == b.nodes[snake2[s + 1]]  {
+                    draw_line(a.0.0, a.0.1, a.1.0, a.1.1, 7.0+ 1.0/(i.z as f32), Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 })
+                    }
                 }
                 }
             }
@@ -394,7 +399,7 @@ async fn main() {
                 p.0,
                 p.1,
                 match i.is_snake || i.is_food {
-                    true => 4.0,
+                    true => (7.0+ 1.0/(i.z as f32))* 0.5,
                     _ => 2.0,
                 },
                 match (i.is_food, i.is_snake) {
