@@ -107,7 +107,7 @@ o888ooo0ood8     `8'     `Y888""8o o888o      o8o        o888o `Y8bod8P'     `8'
 */
 
     fn eval_move(&self, index: usize) -> i32 {
-        let mut tried = self.snake.clone();
+        let mut tried = (0..self.nodes.len()).map(|_|false).collect::<Vec<bool>>();
         let mut n_map: Vec<Vec<usize>> = vec![self.nodes[index].connections.clone()];
         let mut depth = -1;
         if self.nodes[index].is_snake || self.nodes[index].is_food {
@@ -122,8 +122,8 @@ o888ooo0ood8     `8'     `Y888""8o o888o      o8o        o888o `Y8bod8P'     `8'
                     return depth
                 }else {
                     for j in &self.nodes[*i].connections {
-                        if !tried.contains(j) {
-                            tried.push(*j);
+                        if tried[*j] {
+                            tried[*j] = true;
                             new_layer.push(*j);
                         }
                     }
@@ -200,16 +200,16 @@ async fn main() {
 -                                                d"     YD  
 -                                                "Y88888P'  
 */
-    let size = 7;
-    let dimensions = 4;
-    let portals = 15;
+    let size = 15;
+    let dimensions = 2;
+    let portals = 80;
     let food = 40;
     let graph_type = 4;
     let user_control = false;
     let snake_speed = 1;
     let snake_color = Color::from_rgba(149, 166, 90, 255);
-    let show_grid = false;
-    let render_on_top = false; /*(Faster)*/
+    let show_grid = false; /*(Slower)*/
+    let render_on_top = true; /*(Faster)*/
 
     let mut b = match dimensions {
         2 => Board::new_2d_no_portals(size),
